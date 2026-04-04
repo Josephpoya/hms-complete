@@ -17,3 +17,9 @@ services:
 databases:
   - name: hms-db
     plan: free
+  - key: DJANGO_SUPERUSER_USERNAME
+    value: admin
+  - key: DJANGO_SUPERUSER_PASSWORD
+    value: Admin1234!
+  - key: DJANGO_SUPERUSER_EMAIL
+    value: admin@hms.ug
