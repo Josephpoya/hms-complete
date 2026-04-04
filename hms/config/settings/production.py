@@ -66,3 +66,10 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
 REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
     "rest_framework.renderers.JSONRenderer",
 ]
+
+# Use local memory cache instead of Redis for throttling
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
