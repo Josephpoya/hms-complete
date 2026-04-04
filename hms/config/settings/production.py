@@ -2,12 +2,17 @@
 config/settings/production.py
 Production settings for Render deployment.
 """
+import dj_database_url
 from decouple import config, Csv
 from .base import *  # noqa
 
 DEBUG = False
-
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=Csv())
+
+# ---------------------------------------------------------------------------
+# Whitenoise — must be second in middleware after SecurityMiddleware
+# ---------------------------------------------------------------------------
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # ---------------------------------------------------------------------------
 # Security
@@ -25,7 +30,6 @@ SESSION_COOKIE_AGE              = 3600
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
-import dj_database_url
 DATABASES = {
     "default": dj_database_url.parse(
         config("DATABASE_URL"),
@@ -42,7 +46,7 @@ CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 
 # ---------------------------------------------------------------------------
-# Static files (served by Render directly)
+# Static files
 # ---------------------------------------------------------------------------
 STATIC_URL  = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -56,6 +60,15 @@ STORAGES = {
 }
 
 # ---------------------------------------------------------------------------
+# Cache
+# ---------------------------------------------------------------------------
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
+# ---------------------------------------------------------------------------
 # DRF
 # ---------------------------------------------------------------------------
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
@@ -66,18 +79,3 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
 REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
     "rest_framework.renderers.JSONRenderer",
 ]
-
-# Use local memory cache instead of Redis for throttling
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-    }
-}
-
-# Whitenoise for static files
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-] + MIDDLEWARE[1:]
-
-
