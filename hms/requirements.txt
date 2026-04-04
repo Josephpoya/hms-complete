@@ -46,3 +46,4 @@ factory-boy==3.3.1
 coverage==7.6.0
 black==24.4.2
 flake8==7.1.0
+gunicorn==22.0.0
