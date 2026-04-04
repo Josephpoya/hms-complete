@@ -1,0 +1,75 @@
+# =============================================================================
+# Gunicorn systemd service for HMS Django backend
+# Install: cp hms-gunicorn.service /etc/systemd/system/
+#          systemctl daemon-reload
+#          systemctl enable hms-gunicorn
+#          systemctl start hms-gunicorn
+# =============================================================================
+
+[Unit]
+Description=HMS Django Application (Gunicorn)
+Documentation=https://docs.gunicorn.org
+After=network.target postgresql.service redis.service
+Requires=postgresql.service redis.service
+
+[Service]
+Type=notify
+
+# Run as a dedicated low-privilege system user
+User=hms
+Group=hms
+
+# Working directory
+WorkingDirectory=/var/www/hms
+
+# Environment file (chmod 600, owned by hms:hms)
+EnvironmentFile=/etc/hms/.env
+
+# Gunicorn command
+# Workers = (2 × CPU cores) + 1  →  adjust --workers for your server
+# Threads: 2–4 per worker for I/O-heavy Django
+# Timeout: 30s default; increase if you have slow exports
+ExecStart=/var/www/hms/venv/bin/gunicorn \
+    --workers 4 \
+    --threads 2 \
+    --worker-class gthread \
+    --worker-tmp-dir /dev/shm \
+    --bind unix:/run/hms/gunicorn.sock \
+    --umask 007 \
+    --log-level warning \
+    --log-file /var/log/hms/gunicorn.log \
+    --access-logfile /var/log/hms/gunicorn_access.log \
+    --timeout 30 \
+    --graceful-timeout 10 \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
+    --capture-output \
+    config.wsgi:application
+
+# Graceful restart — send SIGUSR2 for zero-downtime reload
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# Socket directory (tmpfiles creates this on boot)
+RuntimeDirectory=hms
+RuntimeDirectoryMode=0750
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=512
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/hms /run/hms /var/www/hms/media
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

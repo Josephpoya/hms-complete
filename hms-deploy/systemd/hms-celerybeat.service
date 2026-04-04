@@ -1,0 +1,38 @@
+# =============================================================================
+# Celery Beat scheduler for HMS periodic tasks
+# Install: cp hms-celerybeat.service /etc/systemd/system/
+# =============================================================================
+
+[Unit]
+Description=HMS Celery Beat Scheduler
+After=network.target redis.service postgresql.service
+Requires=redis.service
+
+[Service]
+Type=forking
+User=hms
+Group=hms
+WorkingDirectory=/var/www/hms
+EnvironmentFile=/etc/hms/.env
+
+ExecStart=/var/www/hms/venv/bin/celery \
+    --app config \
+    beat \
+    --loglevel=info \
+    --logfile=/var/log/hms/celery_beat.log \
+    --scheduler django_celery_beat.schedulers:DatabaseScheduler \
+    --pidfile=/run/hms/celery_beat.pid \
+    --detach
+
+PIDFile=/run/hms/celery_beat.pid
+RuntimeDirectory=hms
+Restart=on-failure
+RestartSec=10s
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/log/hms /run/hms
+
+[Install]
+WantedBy=multi-user.target

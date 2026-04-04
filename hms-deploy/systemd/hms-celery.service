@@ -1,0 +1,46 @@
+# =============================================================================
+# Celery worker systemd service for HMS async tasks
+# Install: cp hms-celery.service /etc/systemd/system/
+# =============================================================================
+
+[Unit]
+Description=HMS Celery Worker
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+Type=forking
+User=hms
+Group=hms
+WorkingDirectory=/var/www/hms
+EnvironmentFile=/etc/hms/.env
+
+ExecStart=/var/www/hms/venv/bin/celery \
+    --app config \
+    worker \
+    --loglevel=info \
+    --logfile=/var/log/hms/celery_worker.log \
+    --concurrency=2 \
+    --queues=default \
+    --pidfile=/run/hms/celery_worker.pid \
+    --detach
+
+ExecStop=/var/www/hms/venv/bin/celery \
+    --app config \
+    control \
+    shutdown
+
+ExecReload=/bin/kill -s HUP $MAINPID
+
+PIDFile=/run/hms/celery_worker.pid
+RuntimeDirectory=hms
+Restart=on-failure
+RestartSec=10s
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/log/hms /run/hms
+
+[Install]
+WantedBy=multi-user.target

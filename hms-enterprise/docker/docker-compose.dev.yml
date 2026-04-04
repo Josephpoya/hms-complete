@@ -1,0 +1,22 @@
+# Development overrides — extends docker-compose.yml
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+version: "3.9"
+
+services:
+  app:
+    build:
+      target: development
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ..:/var/www/hms           # Mount source for hot-reload
+    ports:
+      - "8000:8000"               # Direct access without Nginx
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      DEBUG: "True"
+
+  celery:
+    command: celery --app config worker --loglevel=debug --concurrency=1
+
+  nginx:
+    profiles: ["production"]     # Nginx not used in dev
