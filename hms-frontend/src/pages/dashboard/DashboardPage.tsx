@@ -58,7 +58,7 @@ export function DashboardPage() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   // Derived stats
-  const appts = Array.isArray(todayAppts) ? todayAppts : (todayAppts?.results ?? []);
+  const appts: any[] = Array.isArray(todayAppts) ? todayAppts : ((todayAppts as any)?.results ?? []);
   const totalToday   = appts.length;
   const bookedCount  = appts.filter((a: any) => a.status === 'booked').length;
   const activeCount  = appts.filter((a: any) => a.status === 'in_progress').length;
