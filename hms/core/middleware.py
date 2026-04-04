@@ -142,8 +142,10 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         response["Expires"]       = "0"
 
         # Remove headers that leak server info
-        response.pop("Server",  None)
-        response.pop("X-Powered-By", None)
+        if "Server" in response:
+            del response["Server"]
+        if "X-Powered-By" in response:
+            del response["X-Powered-By"]
 
         return response
 
