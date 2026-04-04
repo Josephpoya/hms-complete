@@ -96,12 +96,12 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
 
     # Content-Security-Policy: API-only service — no inline scripts or external resources
     CSP = (
-        "default-src 'none'; "
-        "script-src 'none'; "
-        "style-src 'none'; "
-        "img-src 'none'; "
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
         "connect-src 'self'; "
-        "font-src 'none'; "
+        "font-src 'self'; "
         "frame-src 'none'; "
         "media-src 'none'; "
         "object-src 'none'; "
