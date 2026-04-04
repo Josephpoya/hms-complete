@@ -24,3 +24,4 @@ cd hms-frontend
 npm install
 cp .env.example .env            # set VITE_API_URL=http://localhost:8000/api/v1
 npm run dev
+# HMS
