@@ -88,12 +88,12 @@ export function InvoiceCreatePage() {
         discount_amount: form.discount_amount || '0',
         currency:        form.currency,
         notes:           form.notes,
-        items: items.map(it => ({
+                items: (items.map(it => ({
           description: it.description,
           item_type:   it.item_type,
           unit_price:  it.unit_price,
           quantity:    it.quantity,
-        })),
+        })) as any),
       });
 
       if (andIssue) {

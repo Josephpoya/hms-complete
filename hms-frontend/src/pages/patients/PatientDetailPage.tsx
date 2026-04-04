@@ -59,7 +59,7 @@ export function PatientDetailPage() {
   }
 
   const age = differenceInYears(new Date(), parseISO(patient.date_of_birth));
-  const hasAlerts = patient.is_diabetic || patient.is_hypertensive || patient.has_allergies;
+  const hasAlerts = patient.is_diabetic || patient.is_hypertensive || patient.allergies;
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
@@ -113,7 +113,7 @@ export function PatientDetailPage() {
           <div className="flex flex-wrap gap-2 text-sm">
             {patient.is_diabetic    && <Badge variant="amber">Diabetic</Badge>}
             {patient.is_hypertensive && <Badge variant="amber">Hypertensive</Badge>}
-            {patient.has_allergies  && (
+            {patient.allergies  && (
               <span className="text-amber-800">
                 <strong>Allergies:</strong> {patient.allergies}
               </span>

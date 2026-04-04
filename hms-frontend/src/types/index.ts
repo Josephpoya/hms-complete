@@ -68,6 +68,8 @@ export interface Patient {
   emergency_contact_relation?: string;
   insurance_provider?: string;
   insurance_number?: string;
+  nationality?: string;
+  national_id?: string;
   insurance_expiry?: string;
   insurance_is_valid: boolean;
   outstanding_balance: string;

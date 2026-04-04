@@ -128,7 +128,7 @@ export function PatientsPage() {
         <div className="flex flex-wrap gap-1">
           {p.is_diabetic      && <Badge variant="amber">DM</Badge>}
           {p.is_hypertensive  && <Badge variant="red">HTN</Badge>}
-          {p.has_allergies    && <Badge variant="purple">Allergy</Badge>}
+          {p.allergies    && <Badge variant="purple">Allergy</Badge>}
         </div>
       ),
     },
