@@ -58,10 +58,11 @@ export function DashboardPage() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   // Derived stats
-  const totalToday   = todayAppts?.length ?? 0;
-  const bookedCount  = todayAppts?.filter((a: any) => a.status === 'booked').length      ?? 0;
-  const activeCount  = todayAppts?.filter((a: any) => a.status === 'in_progress').length ?? 0;
-  const doneCount    = todayAppts?.filter((a: any) => a.status === 'completed').length   ?? 0;
+  const appts = Array.isArray(todayAppts) ? todayAppts : (todayAppts?.results ?? []);
+  const totalToday   = appts.length;
+  const bookedCount  = appts.filter((a: any) => a.status === 'booked').length;
+  const activeCount  = appts.filter((a: any) => a.status === 'in_progress').length;
+  const doneCount    = appts.filter((a: any) => a.status === 'completed').length;
   const stockAlerts  = lowStock?.results?.length ?? 0;
   const availDoctors = workload?.filter?.((d: any) => d.is_available && !d.is_fully_booked)?.length ?? 0;
 
