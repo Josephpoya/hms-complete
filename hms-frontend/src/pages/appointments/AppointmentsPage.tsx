@@ -1,9 +1,10 @@
 /**
- * pages/appointments/AppointmentsPage.tsx  (full rewrite)
- * =========================================================
+ * pages/appointments/AppointmentsPage.tsx
+ * =========================================
  * - Today view + full list with filters
  * - State-machine status transitions
  * - Booking modal integrated
+ * - Consultation modal opens on "Start" (in_progress)
  * - Priority-colour left border on each card
  */
 
@@ -17,10 +18,11 @@ import {
   Card, CardHeader, CardContent, Table, Th, Td, Pagination,
   Button, StatusBadge, Alert, Spinner, EmptyState, Modal,
 } from '../../components/ui';
-import { FilterBar }   from '../../components/shared/FilterBar';
-import { PageHeader }  from '../../components/shared/PageHeader';
-import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
+import { FilterBar }        from '../../components/shared/FilterBar';
+import { PageHeader }       from '../../components/shared/PageHeader';
+import { ConfirmDialog }    from '../../components/shared/ConfirmDialog';
 import { AppointmentBookingForm } from '../../components/forms/AppointmentBookingForm';
+import { ConsultationModal }      from '../../components/forms/ConsultationModal';
 import { Calendar, Plus, Stethoscope, User, Clock } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { clsx } from 'clsx';
@@ -48,6 +50,9 @@ export function AppointmentsPage() {
   const [search,   setSearch]   = useState('');
   const [statusF,  setStatusF]  = useState('');
   const [bookOpen, setBookOpen] = useState(false);
+
+  // Consultation modal state
+  const [consultationAppt, setConsultationAppt] = useState<Appointment | null>(null);
 
   const [statusModal, setStatusModal] = useState<{
     appt: Appointment; action: StatusAction;
@@ -80,6 +85,15 @@ export function AppointmentsPage() {
   );
 
   function openAction(appt: Appointment, action: StatusAction) {
+    // "Start" → open consultation modal AND transition status
+    if (action.next === 'in_progress') {
+      // First transition the status, then open consultation
+      transition.mutate({ id: appt.id, status: 'in_progress' }).then(() => {
+        // Update the appt status locally so modal shows correctly
+        setConsultationAppt({ ...appt, status: 'in_progress' });
+      });
+      return;
+    }
     if (action.next === 'cancelled') {
       setCancelReason('');
     }
@@ -93,6 +107,13 @@ export function AppointmentsPage() {
       status: statusModal.action.next,
       reason: statusModal.action.next === 'cancelled' ? cancelReason : undefined,
     });
+  }
+
+  // Allow opening consultation on in_progress appointments directly
+  function openConsultation(appt: Appointment) {
+    if (appt.status === 'in_progress') {
+      setConsultationAppt(appt);
+    }
   }
 
   const STATUS_TABS = ['', 'booked', 'checked_in', 'in_progress', 'completed', 'cancelled', 'no_show'];
@@ -154,7 +175,13 @@ export function AppointmentsPage() {
         <div className="space-y-2">
           {data.results.map(appt => (
             <div key={appt.id}
-              className={clsx('bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden', PRIORITY_BORDER[appt.priority])}>
+              className={clsx(
+                'bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden',
+                PRIORITY_BORDER[appt.priority],
+                appt.status === 'in_progress' && 'cursor-pointer hover:border-blue-300 hover:shadow-md transition-shadow',
+              )}
+              onClick={() => openConsultation(appt)}
+            >
               <div className="flex items-center gap-4 px-5 py-4">
                 {/* Time block */}
                 <div className="flex-shrink-0 w-16 text-center">
@@ -193,12 +220,20 @@ export function AppointmentsPage() {
                       {appt.appointment_type?.replace('_', ' ')}
                     </span>
                     <StatusBadge status={appt.status} />
+                    {appt.status === 'in_progress' && (
+                      <span className="text-xs text-blue-600 font-medium animate-pulse">
+                        · Click to open consultation
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {/* Actions */}
                 {can('appointments:status') && (
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <div
+                    className="flex items-center gap-1.5 flex-shrink-0"
+                    onClick={e => e.stopPropagation()} // prevent card click
+                  >
                     {(ACTIONS[appt.status] ?? []).map(action => (
                       <button
                         key={action.next}
@@ -232,6 +267,16 @@ export function AppointmentsPage() {
           onCancel={() => setBookOpen(false)}
         />
       </Modal>
+
+      {/* Consultation modal */}
+      {consultationAppt && (
+        <ConsultationModal
+          isOpen={!!consultationAppt}
+          onClose={() => { setConsultationAppt(null); refetch(); }}
+          appointment={consultationAppt}
+          onConsultationSaved={refetch}
+        />
+      )}
 
       {/* Status transition modal */}
       {statusModal && statusModal.action.next === 'cancelled' ? (
