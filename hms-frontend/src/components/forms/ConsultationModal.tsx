@@ -321,7 +321,7 @@ export function ConsultationModal({ isOpen, onClose, appointment, onConsultation
       isOpen={isOpen}
       onClose={onClose}
       title={`Consultation — ${appointment.patient_name}`}
-      size="xl"
+      size="lg"
     >
       {/* Patient info strip */}
       <div className="flex items-center gap-4 mb-4 p-3 bg-slate-50 rounded-lg border border-slate-100 text-sm">
